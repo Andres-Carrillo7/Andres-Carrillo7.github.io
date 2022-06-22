@@ -1,0 +1,301 @@
+/* css Zen Garden default style v1.02 */
+/* css released under Creative Commons License - http://creativecommons.org/licenses/by-nc-sa/1.0/  */
+
+/* This file based on 'Tranquille' by Dave Shea */
+/* You may use this file as a foundation for any new work, but you may find it easier to start from scratch. */
+/* Not all elements are defined in this file, so you'll most likely want to refer to the xhtml as well. */
+
+/* Your images should be linked as if the CSS file sits in the same folder as the images. ie. no paths. */
+
+
+/* basic elements */
+* {
+	box-sizing: border-box;
+}
+
+html {
+	margin: 0;
+	padding: 0;
+	overflow-x: hidden;
+	}
+body { 
+	font: 75% georgia, sans-serif;
+	line-height: 1.88889;
+	color: #555753; 
+	margin: 0; 
+	padding: 0;
+	}
+p { 
+	font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+	color: black;
+	font-size: 1.2rem;
+	margin-top: 0; 
+	text-align: justify;
+	}
+h1 {
+	margin: 0;
+}
+h2 {
+	margin: 0;
+}
+
+h3{
+	position: relative;
+	text-align: center;
+	font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+	font-style: italic;
+	font-size: 2rem;
+	color: black;
+}
+
+a:link { 
+	font-weight: bold; 
+	text-decoration: none; 
+	color: rgb(181, 36, 36);
+	}
+a:visited { 
+	font-weight: bold; 
+	text-decoration: none; 
+	color: #D4CDDC;
+	}
+a:hover, a:focus, a:active { 
+	text-decoration: underline; 
+	color: #9685BA;
+	}
+abbr {
+	border-bottom: none;
+	}
+
+
+/* specific divs */
+.page-wrapper { 
+	background-color: lavenderblush;
+	padding: 0;
+	margin: 0; 
+	position: relative;
+	}
+
+.intro { 
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	background-color: rgb(59, 56, 56);
+	width: 90%;		
+	height: 48rem;
+	top: 3rem;
+	left: 10%;
+	order: 1;
+	}
+
+header h1 { 
+	padding: 10px 25px 10px 25px; 
+	position: relative;
+	background-color: rgb(253, 219, 67);
+	font-family: serif 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+	font-size: 40px;
+	color: black;
+	top: 2rem;
+	left: 75rem;
+	display: inline-block;
+	}
+header h2 {
+	position: relative; 
+	font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+	font-style: italic;
+	font-size: 108px;
+	text-align: center;
+	color: #FFFF;
+	white-space: nowrap;
+	top: 1.5rem;
+	left: 15rem;	
+	}
+header {
+	position: relative;
+	top: 2rem;
+	height: 36rem;
+	width: 80%;
+}
+
+.summary {
+	position: absolute;
+	clear: both; 	
+	color: #FFFF;
+	width: 75%;
+	top: 23rem;
+	left: 25rem; 		
+	}
+
+.summary p{
+	color: #FFFF;
+}
+
+.preamble {
+	background-color: lightskyblue;
+	color: #FFFF;
+	position: absolute;
+	clear: right; 
+	padding: 0px 20px 0 20px;
+	text-align: center;
+	height: 30rem;
+	width: 111.5%;
+	top: 38rem;
+	left: -12rem;
+	}
+.preamble p {
+	position: relative;
+	top: 4rem;
+}
+
+.preamble h3 {
+	margin: 0;
+	position: relative;
+	font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+	font-style: italic;
+	font-size: 4rem;
+	color: black;
+	top: 2rem;
+}
+
+.supporting{
+	background-color: lavenderblush;
+	display: flex;
+	flex-direction: row;
+	position: relative;
+	top: 21rem;
+	order: 2;
+}
+.explanation {	
+	position: relative;
+	background-color: rgb(145, 225, 197);
+	padding: 0px 30px 0 30px;
+	width: 20%;
+	height: 77.8rem;
+	padding-left: 10px; 
+	left: 92rem;
+	}
+
+.participation {
+	position: relative;
+	background-color:rgb(145, 225, 197);
+	padding: 0px 30px 0 30px;
+	width: 20%;
+	padding-left: 10px; 
+	height: 77.8rem;
+	left: 43.7rem;
+}
+
+.benefits {
+	position: relative;
+	background-color: rgb(145, 225, 197);
+	padding: 0px 30px 0 30px;
+	width: 50.5%;
+	padding-left: 10px; 
+	height: 20rem;
+	right: 39%;
+}
+
+.requirements{
+	position: absolute;
+	background-color: rgb(145, 225, 197);
+	padding: 0px 30px 0 30px;
+	width: 50.6%;
+	padding-left: 10px; 
+	height: auto;
+	right: 48.5%;
+	top: 21rem;
+}
+footer { 
+	background-color: rgb(59, 56, 56);
+	position: absolute;
+	display: flex;
+	text-align: center; 
+	top: 77rem;
+	height: 6rem;
+	right: 0%;
+	width: 100%;
+	order: 3;
+	}
+footer a:link, footer a:visited {
+	position: relative; 
+	left: 8%;
+	font-family: serif 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+	font-size: 2rem;
+	color: rgb(253, 219, 67);
+	margin-top: 1.3rem;
+	margin-right: 18rem; 
+	}
+
+.sidebar {
+	position: absolute; 
+	bottom: 67.4%; 
+	right: 87%;
+	}
+.sidebar .wrapper { 
+	background: rgb(253, 219, 67);;
+	font: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+	padding: 15px 15px 15px 25px; 
+	margin-top: 150px; 
+	font-size: 11px;
+	}
+.wrapper{
+	width: 85%;
+	height: 38.1rem;
+	padding: 5px;
+}
+
+.sidebar h3.select { 
+	font-size: 12px;
+	margin: 10px 0 10px 0; 
+	width: 97px; 
+	height: 16px; 
+
+	text-indent: 0%;
+	white-space: nowrap;
+	}
+.sidebar h3.archives { 
+	font-size: 12px;
+	margin: 25px 0 15px 0; 
+	width: 57px; 
+	height: 14px; 
+
+	text-indent: 0%;
+	white-space: nowrap;
+	}
+.sidebar h3.resources { 
+	font-size: 12px;
+	margin: 25px 0 20px 0; 
+	width: 63px; 
+	height: 10px; 
+
+	text-indent: 0%;
+	white-space: nowrap;
+	}
+
+.sidebar ul {
+	margin: 0;
+	padding: 0;
+	background: transparent url(./img/linea_negra.jpg) no-repeat top center; 
+	}
+.sidebar li {
+	line-height: 1.6em; 
+	display: block; 
+	padding-top: 5px; 
+	margin-bottom: px;
+	list-style-type: none;
+	}
+.sidebar li a:link {
+	color: #4b4a42;
+	}
+.sidebar li a:visited {
+	color: #a75708;
+	}
+
+
+.extra1 {
+	position: absolute; 
+	top: 40px; 
+	right: 0; 
+	width: 148px; 
+	height: 110px;
+	}
+
