@@ -374,7 +374,7 @@ body {
 .content-container {
   width: 100%;
   max-width: 360px;
-  max-height: calc(125vh - 300px);
+  max-height: calc(120vh - 300px);
   margin: 0 auto;
   display: flex;
   flex-direction: column;
