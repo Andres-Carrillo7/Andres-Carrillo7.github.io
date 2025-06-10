@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WayFinding Plaza Central Mobile</title>
+  <link rel="stylesheet" href="/css/main.css" />
+</head>
+<body>
+ <!-- Checkbox oculto -->
+  <input type="checkbox" id="menu-toggle" hidden />
+
+    <header class="header">
+    <div class="left-section">
+        <label for="menu-toggle" class="menu-icon">
+        <span class="hamburger"></span>
+        </label>
+        <a href="../index.html" class="logo">
+        LO<br>GO
+        </a>
+    </div>
+    <button class="back-button" id="btnAtras"></button>
+    <button class="map-button">Mapa</button>
+    </header>
+
+  <div class="side-menu">
+    <div class="close-container">
+      <label for="menu-toggle" class="close-icon">
+        <span class="hamburger"></span>
+        <div class="logo-menu">LOGO</div>
+      </label>
+    </div>
+
+    <div class="menu-items">
+       <div class="menu-item">
+        <img src="/assets/icon-map.svg" alt="Mapa" class="icon" />
+        <a href="/components/map.html">Mapa</a>
+      </div>
+      <div class="menu-item">
+        <img src="/assets/icon-promotion.svg" alt="Promociones" class="icon" />
+        <a href="/components/content.html">Promociones</a>
+      </div>
+      <div class="menu-item">
+        <img src="/assets/icon-event.svg" alt="Eventos" class="icon" />
+        <a href="/components/content.html">Eventos</a>
+      </div>
+      <div class="menu-item">
+        <img src="/assets/icon-service.svg" alt="Servicios" class="icon" />
+        <a href="/components/content.html">Servicios</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="search-container">
+    <img class="search-icon" />
+    <input type="text" placeholder="Buscar" class="search-input" />
+  </div>
+  
+ <div id="results" class="results-container"></div>
+
+  <div class="slider-container">
+    <div class="slide">
+      <p>Slide 1</p>
+    </div>
+    <div class="slide">
+      <p>Slide 2</p>
+    </div>
+  </div>
+
+    <div class="subcategory-container">
+    </div>
+</body>
+<script src="/src/subcategory.js"></script>
+<script src="/src/back.js"></script>
+<script src="/src/search.js"></script>
+</html>
