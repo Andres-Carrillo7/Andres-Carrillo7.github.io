@@ -1,37 +1,39 @@
-async function loadCategories() {
-    try {
-      const container = document.querySelector(".category-container");
+async function loadContent() {
+  try {
+    const container = document.querySelector(".slider-container");
 
-      const response = await fetch('https://wayfindingcms.oohrd.com/struct/api/category', {
-        method: 'GET',
-        headers: {
-          "Authorization": "Basic " + btoa("andres.carrillo@oohrd.com:andr3sCa11ill0")
-        }
+    const response = await fetch('https://wayfindingcms.oohrd.com/struct/api/content', {
+      method: 'GET',
+      headers: {
+        "Authorization": "Basic " + btoa("andres.carrillo@oohrd.com:andr3sCa11ill0")
+      }
+    });
+
+    const data = await response.json();
+    container.innerHTML = '';
+
+    data.forEach(group => {
+      group.contents.forEach(content => {
+        const slideDiv = document.createElement("div");
+        slideDiv.classList.add("slide");
+
+        const imageDiv = document.createElement("div");
+        imageDiv.classList.add("slide-image");
+        imageDiv.style.backgroundImage = `url('https://wayfindingcms.oohrd.com${content.img}')`;
+
+        const colorDiv = document.createElement("div");
+        colorDiv.classList.add("slide-color");
+
+        slideDiv.appendChild(imageDiv);
+        slideDiv.appendChild(colorDiv);
+
+        container.appendChild(slideDiv);
       });
+    });
 
-      const data = await response.json();
-      container.innerHTML = '';
-
-      data.forEach(category => {
-        const categoryDiv = document.createElement("div");
-        categoryDiv.classList.add("category");
-
-        categoryDiv.style.backgroundImage = `url('https://wayfindingcms.oohrd.com/${category.img}')`;
-
-        categoryDiv.onclick = () => {
-          window.location.href = `components/subcategory.html?categoryID=${category.id}`;
-        };
-
-        const name = document.createElement("p");
-        name.textContent = category.name;
-
-        categoryDiv.appendChild(name);
-        container.appendChild(categoryDiv);
-      });
-
-    } catch (error) {
-      console.error("Error al cargar las categorías:", error);
-    }
+  } catch (error) {
+    console.error("Error al cargar las categorías:", error);
   }
+}
 
-  document.addEventListener("DOMContentLoaded", loadCategories);
+document.addEventListener("DOMContentLoaded", loadContent);
