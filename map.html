@@ -1,0 +1,25 @@
+  <style>
+    #mi-contenedor{
+        height: 300px;
+        width: 500px;
+        position: relative;
+    }
+
+  </style>
+  
+  <h1>Ejemplo SDK</h1>
+  <div id="mi-contenedor"></div>
+  <button id="zoom-in" >Zoom in</button>
+  <button id="zoom-out" >Zoom out</button>
+  <button id="zoom-reset" >Zoom Reset</button>
+  <script  type="module" >
+      import { WFMapSDK } from './wf_mapsdk/main.js';
+      const client={
+          map_key: 'mik_NiqvvlUUGDWjonwI35a3a07e7',
+          map_secret: 'mis_GlIrmk29gCx4HsyyLzpvQtUNLYh0dWIHKzEJ4FIC0j698b71024',
+          map_id: '67f54b1a73bd2d000bfb1700'
+      }
+      const mapsdk = new WFMapSDK(client, "mi-contenedor", "zoom-in", "zoom-out", "zoom-reset");
+  </script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+
+#mappedin-map {
+    flex: 1;
+    position: relative;
+    height: calc(100% + 55px);
+}
+
+
+
+#compass-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    left: 23px;
+    top: 20px;
+    position: absolute;
+}
+
+#compass {
+    width: 30px;
+    height: 30px;
+    background-image: url('./assets/nort_black.png');
+    background-repeat: no-repeat;
+    background-position: top center;
+    background-size: cover;
+}
