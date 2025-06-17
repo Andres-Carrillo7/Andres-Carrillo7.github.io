@@ -6,6 +6,144 @@
   <title>WayFinding Plaza Central Mobile</title>
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
   <link rel="stylesheet" href="/css/main.css" />
+  <style>
+    #map-layer {
+      position: absolute;
+      top: 50px;
+      left: 0;
+      width: 100vw;
+      height: calc(100vh - 50px);
+      z-index: 1;
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    #mi-contenedor {
+      height: 100%;
+      width: 100%;
+      position: relative;
+    }
+
+    #content-layer {
+      position: absolute;
+      top: 50px;
+      left: 0;
+      width: 100vw;
+      height: calc(100vh - 50px);
+      z-index: 2;
+      background-image: url('../assets/background.png');
+      background-repeat: no-repeat;
+      background-size: cover;
+      transition: opacity 0.3s ease;
+    }
+
+    body.map-mode #content-layer {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    body.map-mode #map-layer {
+      z-index: 10;
+    }
+
+    /* CORRECCIÓN: El menú debe estar siempre por encima usando especificidad correcta */
+    .side-menu {
+      position: fixed;
+      top: 0;
+      left: -70%;
+      width: 70%;
+      height: 100vh;
+      background-color: white;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+      transition: left 0.3s ease;
+      z-index: 1000; /* Valor alto pero sin !important */
+      padding: 20px 10px;
+    }
+
+    /* Asegurar que en modo mapa el menú siga por encima */
+    body.map-mode .side-menu {
+      z-index: 1001; /* Un nivel más alto que el mapa */
+    }
+
+    #menu-toggle:checked ~ #content-layer .side-menu,
+    #menu-toggle:checked ~ .side-menu {
+      left: 0;
+    }
+
+    /* Overlay para cerrar el menú cuando se hace clic fuera */
+    .menu-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+      display: none;
+    }
+
+    #menu-toggle:checked ~ .menu-overlay {
+      display: block;
+    }
+
+    .map-controls {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 11;
+    }
+
+    .map-controls button {
+      padding: 10px 15px;
+      background: white;
+      border: none;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .map-controls button:hover {
+      background: #f0f0f0;
+    }
+
+    .close-map-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: white;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      z-index: 12;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    body.map-mode .close-map-btn {
+      display: flex;
+    }
+
+    .search-container,
+    .results-container,
+    .slider-container,
+    #main-content {
+      position: relative;
+      z-index: 3;
+    }
+
+    /* Corrección adicional para asegurar el funcionamiento del menú */
+    .header {
+      position: relative;
+      z-index: 100;
+    }
+  </style>
 </head>
 <body>
   <input type="checkbox" id="menu-toggle" hidden />
@@ -19,9 +157,13 @@
         LO<br>GO
       </a>
     </div>
-    <button class="map-button">Mapa</button>
+    <button class="map-button" onclick="showMap()">Mapa</button>
   </header>
 
+  <!-- Overlay para cerrar el menú -->
+  <div class="menu-overlay" onclick="closeMenu()"></div>
+
+  <!-- Menú lateral - MOVIDO FUERA de las capas -->
   <div class="side-menu">
     <div class="close-container">
       <label for="menu-toggle" class="close-icon">
@@ -29,115 +171,310 @@
         <div class="logo-menu">LOGO</div>
       </label>
     </div>
-
     <div class="menu-items">
     </div>
-</div>
-
-  <div class="search-container">
-    <img class="search-icon" />
-    <input type="text" placeholder="Buscar" class="search-input" />
   </div>
 
-  <div id="results" class="results-container"></div>
-
-  <div class="slider-container">
+  <!-- Capa del mapa (siempre activa pero oculta) -->
+  <div id="map-layer">
+    <div id="mi-contenedor"></div>
+    <div class="map-controls">
+      <button id="zoom-in">Zoom +</button>
+      <button id="zoom-out">Zoom -</button>
+      <button id="zoom-reset">Reset</button>
+    </div>
+    <button class="close-map-btn" onclick="hideMap()">×</button>
   </div>
 
-  <div 
-    id="main-content"
-    hx-get="/components/category.html"
-    hx-trigger="load"
-    hx-swap="innerHTML"
-  ></div>
-</body>
-<script src="/src/search.js"></script>
-<script src="/src/slider.js"></script>
+  <!-- Capa de contenido -->
+  <div id="content-layer">
+    <div class="search-container">
+      <img class="search-icon" />
+      <input type="text" placeholder="Buscar" class="search-input" />
+    </div>
 
-<script type="module">
-  import { loadCategories } from "/src/category.js";
-  import { loadSubcategories } from "/src/subcategory.js";
-  import { loadPois } from "/src/poi.js";
-  import { loadContent, showSlider } from "/src/content.js";
-  import { loadMenu } from "/src/menu.js";
+    <div id="results" class="results-container"></div>
 
-  document.addEventListener("DOMContentLoaded", () => {
-    loadMenu();
-  });
+    <div class="slider-container">
+    </div>
 
-  document.body.addEventListener("htmx:afterSwap", (evt) => {
+    <div 
+      id="main-content"
+      hx-get="/components/category.html"
+      hx-trigger="load"
+      hx-swap="innerHTML"
+    ></div>
+  </div>
+
+  <script src="/src/search.js"></script>
+  <script src="/src/slider.js"></script>
+
+  <script>
+    // Estado global para controlar la inicialización
+    let appState = {
+      domReady: false,
+      mapInitialized: false,
+      menuLoaded: false,
+      retryCount: 0,
+      maxRetries: 3
+    };
+
+    function showMap() {
+      document.body.classList.add('map-mode');
+      
+      // Cerrar el menú si está abierto
+      const menuToggle = document.getElementById('menu-toggle');
+      if (menuToggle.checked) {
+        menuToggle.checked = false;
+      }
+    }
+
+    function hideMap() {
+      document.body.classList.remove('map-mode');
+    }
+
+    function closeMenu() {
+      const menuToggle = document.getElementById('menu-toggle');
+      if (menuToggle) {
+        menuToggle.checked = false;
+      }
+    }
+
+    window.showMapFromMenu = function() {
+      // Cerrar el menú primero
+      closeMenu();
+      // Luego mostrar el mapa
+      setTimeout(() => {
+        showMap();
+      }, 300); // Esperar a que termine la animación del menú
+      return false;
+    };
+
+    let mapsdk;
     
-    if (evt.detail.target.id === "main-content") {
-      const url = evt.detail.xhr?.responseURL || "";
-
-      if (url.includes("category.html") && !url.includes("subcategory.html")) {
-        showSlider();
-        loadCategories();
-      } else if (url.includes("subcategory.html")) {
-        
-        try {
-          const urlParts = url.split('?');
-          console.log("URL parts:", urlParts);
-          
-          if (urlParts.length > 1) {
-            const urlParams = new URLSearchParams(urlParts[1]);
-            const categoryID = urlParams.get('categoryID');
-            
-            if (categoryID) {
-              
-              setTimeout(() => {
-                loadSubcategories(categoryID);
-              }, 50);
-            } else {
-              console.error("No se encontró categoryID en la URL");
-            }
+    async function initializeMap() {
+      if (appState.mapInitialized) return;
+      
+      try {
+        const mapContainer = document.getElementById('mi-contenedor');
+        if (!mapContainer) {
+          console.warn('Map container not found, retrying...');
+          if (appState.retryCount < appState.maxRetries) {
+            appState.retryCount++;
+            setTimeout(initializeMap, 1000);
           }
-        } catch (error) {
-          console.error("Error procesando subcategory:", error);
+          return;
         }
-      } else if (url.includes("poi.html")) {
-        console.log(">>> Detectado poi.html");
-        
-        try {
-          const urlParts = url.split('?');
-          
-          if (urlParts.length > 1) {
-            const urlParams = new URLSearchParams(urlParts[1]);
-            const subcategoryID = urlParams.get('subcategoryID');
-            
-            console.log("SubcategoryID extraído:", subcategoryID);
 
-            if (subcategoryID) {
-              
-              setTimeout(() => {
-                loadPois(subcategoryID);
-              }, 50);
-            } else {
-              console.error("No se encontró subcategoryID en la URL");
-            }
-          }
-        } catch (error) {
-          console.error("Error procesando poi:", error);
-        }
-      } else if (url.includes("content.html")) {
+        const client = {
+          map_key: 'mik_NiqvvlUUGDWjonwI35a3a07e7',
+          map_secret: 'mis_GlIrmk29gCx4HsyyLzpvQtUNLYh0dWIHKzEJ4FIC0j698b71024',
+          map_id: '67f54b1a73bd2d000bfb1700'
+        };
         
-        try {
-          const urlParts = url.split('?');
-          
-          let contentType = 'all';
-          if (urlParts.length > 1) {
-            const urlParams = new URLSearchParams(urlParts[1]);
-            contentType = urlParams.get('typeId') || 'all';
-          }
-          
-          setTimeout(() => {
-            loadContent(contentType);
-          }, 50);
-        } catch (error) {
-          console.error("Error procesando content:", error);
+        const module = await import('./wf_mapsdk/main.js');
+        const { WFMapSDK } = module;
+        mapsdk = new WFMapSDK(client, "mi-contenedor", "zoom-in", "zoom-out", "zoom-reset");
+        appState.mapInitialized = true;
+        console.log('Map initialized successfully');
+        
+      } catch (error) {
+        console.error('Error loading map SDK:', error);
+        if (appState.retryCount < appState.maxRetries) {
+          appState.retryCount++;
+          console.log(`Retrying map initialization (${appState.retryCount}/${appState.maxRetries})`);
+          setTimeout(initializeMap, 2000);
         }
       }
     }
-  });
-</script>
+
+    // Función para asegurar que el DOM esté listo
+    function ensureDOMReady(callback) {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', callback);
+      } else {
+        callback();
+      }
+    }
+
+    // Función para esperar a que un elemento exista
+    function waitForElement(selector, timeout = 5000) {
+      return new Promise((resolve, reject) => {
+        const element = document.querySelector(selector);
+        if (element) {
+          resolve(element);
+          return;
+        }
+
+        const observer = new MutationObserver((mutations, obs) => {
+          const element = document.querySelector(selector);
+          if (element) {
+            obs.disconnect();
+            resolve(element);
+          }
+        });
+
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
+
+        setTimeout(() => {
+          observer.disconnect();
+          reject(new Error(`Element ${selector} not found within ${timeout}ms`));
+        }, timeout);
+      });
+    }
+  </script>
+
+  <script type="module">
+    import { loadCategories } from "/src/category.js";
+    import { loadSubcategories } from "/src/subcategory.js";
+    import { loadPois } from "/src/poi.js";
+    import { loadContent, showSlider } from "/src/content.js";
+    import { loadMenu } from "/src/menu.js";
+
+    // Función de inicialización segura
+    async function safeInitialize() {
+      try {
+        console.log('Starting safe initialization...');
+        
+        // Esperar a que el DOM esté completamente listo
+        await new Promise(resolve => {
+          if (document.readyState === 'complete') {
+            resolve();
+          } else {
+            window.addEventListener('load', resolve);
+          }
+        });
+
+        // Esperar a que el contenedor del menú exista
+        await waitForElement('.menu-items');
+        
+        // Cargar el menú con reintentos
+        await loadMenuWithRetry();
+        
+        // Inicializar el mapa
+        await initializeMap();
+        
+        console.log('Initialization completed successfully');
+        
+      } catch (error) {
+        console.error('Error during initialization:', error);
+        // Reintentar después de un delay
+        setTimeout(safeInitialize, 2000);
+      }
+    }
+
+    // Función para cargar el menú con reintentos
+    async function loadMenuWithRetry(retries = 3) {
+      for (let i = 0; i < retries; i++) {
+        try {
+          await loadMenu();
+          appState.menuLoaded = true;
+          console.log('Menu loaded successfully');
+          return;
+        } catch (error) {
+          console.warn(`Menu load attempt ${i + 1} failed:`, error);
+          if (i === retries - 1) throw error;
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+    }
+
+    // Inicializar la aplicación
+    safeInitialize();
+
+    // Mejorar el manejo de eventos HTMX
+    document.body.addEventListener("htmx:afterSwap", async (evt) => {
+      try {
+        if (evt.detail.target.id === "main-content") {
+          const url = evt.detail.xhr?.responseURL || "";
+          console.log('HTMX swap completed for:', url);
+
+          // Esperar un poco para que el DOM se actualice
+          await new Promise(resolve => setTimeout(resolve, 100));
+
+          if (url.includes("category.html") && !url.includes("subcategory.html")) {
+            try {
+              showSlider();
+              await loadCategories();
+            } catch (error) {
+              console.error('Error loading categories:', error);
+            }
+          } else if (url.includes("subcategory.html")) {
+            try {
+              const urlParts = url.split('?');
+              console.log("URL parts:", urlParts);
+              
+              if (urlParts.length > 1) {
+                const urlParams = new URLSearchParams(urlParts[1]);
+                const categoryID = urlParams.get('categoryID');
+                
+                if (categoryID) {
+                  await new Promise(resolve => setTimeout(resolve, 100));
+                  await loadSubcategories(categoryID);
+                } else {
+                  console.error("No se encontró categoryID en la URL");
+                }
+              }
+            } catch (error) {
+              console.error("Error procesando subcategory:", error);
+            }
+          } else if (url.includes("poi.html")) {
+            console.log(">>> Detectado poi.html");
+            
+            try {
+              const urlParts = url.split('?');
+              
+              if (urlParts.length > 1) {
+                const urlParams = new URLSearchParams(urlParts[1]);
+                const subcategoryID = urlParams.get('subcategoryID');
+                
+                console.log("SubcategoryID extraído:", subcategoryID);
+
+                if (subcategoryID) {
+                  await new Promise(resolve => setTimeout(resolve, 100));
+                  await loadPois(subcategoryID);
+                } else {
+                  console.error("No se encontró subcategoryID en la URL");
+                }
+              }
+            } catch (error) {
+              console.error("Error procesando poi:", error);
+            }
+          } else if (url.includes("content.html")) {
+            try {
+              const urlParts = url.split('?');
+              
+              let contentType = 'all';
+              if (urlParts.length > 1) {
+                const urlParams = new URLSearchParams(urlParts[1]);
+                contentType = urlParams.get('typeId') || 'all';
+              }
+              
+              await new Promise(resolve => setTimeout(resolve, 100));
+              await loadContent(contentType);
+            } catch (error) {
+              console.error("Error procesando content:", error);
+            }
+          } else if (url.includes("map.html")) {
+            showMap();
+          }
+        }
+      } catch (error) {
+        console.error('Error in HTMX afterSwap handler:', error);
+      }
+    });
+
+    // Manejar errores de HTMX
+    document.body.addEventListener("htmx:responseError", (evt) => {
+      console.error('HTMX Response Error:', evt.detail);
+    });
+
+    document.body.addEventListener("htmx:sendError", (evt) => {
+      console.error('HTMX Send Error:', evt.detail);
+    });
+  </script>
+</body>
 </html>

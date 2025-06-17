@@ -14,9 +14,6 @@
 
 body {
   font-family: 'Segoe UI', sans-serif;
-  background-image: url('../assets/background.png');
-  background-repeat: no-repeat;
-  background-size: cover;
   color: white;
   width: 100vw;
   height: 100vh;
@@ -89,8 +86,23 @@ body {
   background-color: white;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
   transition: left 0.3s ease;
-  z-index: 5;
+  z-index: 1000;
   padding: 20px 10px;
+}
+
+.menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: none;
+}
+
+#menu-toggle:checked ~ .menu-overlay {
+  display: block;
 }
 
 #menu-toggle:checked ~ .side-menu {
@@ -165,6 +177,7 @@ body {
   justify-content: center;
   flex-direction: column;
   margin-left: 8px;
+  z-index: 15;
 }
 
 .back-button {
@@ -200,6 +213,7 @@ body {
   padding: 0 8px;
   gap: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 16;
 }
 
 .search-icon {
@@ -307,8 +321,9 @@ body {
 .category {
   aspect-ratio: 2 / 1;
   border-radius: 14px;
-  background-size: cover;
+  background-size: contain;
   background-position: center;
+  background-repeat: no-repeat;
   color: #FFF7DA;
   font-family: 'Monument Extended', sans-serif;
   font-size: 12px;
