@@ -1,37 +1,39 @@
-  async function loadCategories() {
-    try {
-      const container = document.querySelector(".category-container");
+export async function loadCategories() {
+  try {
+    const container = document.querySelector(".category-container");
 
-      const response = await fetch('https://wayfindingcms.oohrd.com/struct/api/category', {
-        method: 'GET',
-        headers: {
-          "Authorization": "Basic " + btoa("andres.carrillo@oohrd.com:andr3sCa11ill0")
-        }
-      });
+    if (!container) return;
 
-      const data = await response.json();
-      container.innerHTML = '';
+    const response = await fetch('https://wayfindingcms.oohrd.com/struct/api/category', {
+      method: 'GET',
+      headers: {
+        "Authorization": "Basic " + btoa("andres.carrillo@oohrd.com:andr3sCa11ill0")
+      }
+    });
 
-      data.forEach(category => {
-        const categoryDiv = document.createElement("div");
-        categoryDiv.classList.add("category");
+    const data = await response.json();
+    container.innerHTML = '';
 
-        categoryDiv.style.backgroundImage = `url('https://wayfindingcms.oohrd.com/${category.img}')`;
+    data.forEach(category => {
+      const categoryDiv = document.createElement("div");
+      categoryDiv.classList.add("category");
 
-        categoryDiv.onclick = () => {
-          window.location.href = `components/subcategory.html?categoryID=${category.id}`;
-        };
+      categoryDiv.style.backgroundImage = `url('https://wayfindingcms.oohrd.com/${category.img}')`;
 
-        const name = document.createElement("p");
-        name.textContent = category.name;
+      categoryDiv.setAttribute('hx-get', `/components/subcategory.html?categoryID=${category.id}`);
+      categoryDiv.setAttribute('hx-target', '#main-content');
+      categoryDiv.setAttribute('hx-swap', 'innerHTML');
 
-        categoryDiv.appendChild(name);
-        container.appendChild(categoryDiv);
-      });
+      const name = document.createElement("p");
+      name.textContent = category.name;
 
-    } catch (error) {
-      console.error("Error al cargar las categorías:", error);
-    }
+      categoryDiv.appendChild(name);
+      container.appendChild(categoryDiv);
+
+      htmx.process(categoryDiv);
+    });
+
+  } catch (error) {
+    console.error("Error al cargar las categorías:", error);
   }
-
-  document.addEventListener("DOMContentLoaded", loadCategories);
+}

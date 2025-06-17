@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>WayFinding Plaza Central Mobile</title>
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
   <link rel="stylesheet" href="/css/main.css" />
 </head>
 <body>
@@ -30,24 +31,8 @@
     </div>
 
     <div class="menu-items">
-      <div class="menu-item">
-        <img src="/assets/icon-map.svg" alt="Mapa" class="icon" />
-        <a href="/components/map.html">Mapa</a>
-      </div>
-      <div class="menu-item">
-        <img src="/assets/icon-promotion.svg" alt="Promociones" class="icon" />
-        <a href="/components/content.html">Promociones</a>
-      </div>
-      <div class="menu-item">
-        <img src="/assets/icon-event.svg" alt="Eventos" class="icon" />
-        <a href="/components/content.html">Eventos</a>
-      </div>
-      <div class="menu-item">
-        <img src="/assets/icon-service.svg" alt="Servicios" class="icon" />
-        <a href="/components/content.html">Servicios</a>
-      </div>
     </div>
-  </div>
+</div>
 
   <div class="search-container">
     <img class="search-icon" />
@@ -59,10 +44,100 @@
   <div class="slider-container">
   </div>
 
-  <div class="category-container">
-  </div>
+  <div 
+    id="main-content"
+    hx-get="/components/category.html"
+    hx-trigger="load"
+    hx-swap="innerHTML"
+  ></div>
 </body>
 <script src="/src/search.js"></script>
 <script src="/src/slider.js"></script>
-<script src="/src/category.js"></script>
+
+<script type="module">
+  import { loadCategories } from "/src/category.js";
+  import { loadSubcategories } from "/src/subcategory.js";
+  import { loadPois } from "/src/poi.js";
+  import { loadContent, showSlider } from "/src/content.js";
+  import { loadMenu } from "/src/menu.js";
+
+  document.addEventListener("DOMContentLoaded", () => {
+    loadMenu();
+  });
+
+  document.body.addEventListener("htmx:afterSwap", (evt) => {
+    
+    if (evt.detail.target.id === "main-content") {
+      const url = evt.detail.xhr?.responseURL || "";
+
+      if (url.includes("category.html") && !url.includes("subcategory.html")) {
+        showSlider();
+        loadCategories();
+      } else if (url.includes("subcategory.html")) {
+        
+        try {
+          const urlParts = url.split('?');
+          console.log("URL parts:", urlParts);
+          
+          if (urlParts.length > 1) {
+            const urlParams = new URLSearchParams(urlParts[1]);
+            const categoryID = urlParams.get('categoryID');
+            
+            if (categoryID) {
+              
+              setTimeout(() => {
+                loadSubcategories(categoryID);
+              }, 50);
+            } else {
+              console.error("No se encontró categoryID en la URL");
+            }
+          }
+        } catch (error) {
+          console.error("Error procesando subcategory:", error);
+        }
+      } else if (url.includes("poi.html")) {
+        console.log(">>> Detectado poi.html");
+        
+        try {
+          const urlParts = url.split('?');
+          
+          if (urlParts.length > 1) {
+            const urlParams = new URLSearchParams(urlParts[1]);
+            const subcategoryID = urlParams.get('subcategoryID');
+            
+            console.log("SubcategoryID extraído:", subcategoryID);
+
+            if (subcategoryID) {
+              
+              setTimeout(() => {
+                loadPois(subcategoryID);
+              }, 50);
+            } else {
+              console.error("No se encontró subcategoryID en la URL");
+            }
+          }
+        } catch (error) {
+          console.error("Error procesando poi:", error);
+        }
+      } else if (url.includes("content.html")) {
+        
+        try {
+          const urlParts = url.split('?');
+          
+          let contentType = 'all';
+          if (urlParts.length > 1) {
+            const urlParams = new URLSearchParams(urlParts[1]);
+            contentType = urlParams.get('typeId') || 'all';
+          }
+          
+          setTimeout(() => {
+            loadContent(contentType);
+          }, 50);
+        } catch (error) {
+          console.error("Error procesando content:", error);
+        }
+      }
+    }
+  });
+</script>
 </html>

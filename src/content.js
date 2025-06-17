@@ -1,31 +1,88 @@
-async function loadContent() {
-  try {
-    const container = document.querySelector(".content-container");
+export async function loadContent(typeId) {
+    console.log("loadContent llamado con typeId:", typeId);
+    
+    try {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        const container = document.querySelector(".content-container");
+        console.log("Container content encontrado:", container);
 
-    const response = await fetch('https://wayfindingcms.oohrd.com/struct/api/content', {
-      method: 'GET',
-      headers: {
-        "Authorization": "Basic " + btoa("andres.carrillo@oohrd.com:andr3sCa11ill0")
-      }
-    });
+        if (!container) {
+            console.error("Error: Contenedor de contenido no encontrado.");
+            return;
+        }
 
-    const data = await response.json();
-    container.innerHTML = '';
+        // Ocultar el slider cuando estamos en content
+        const sliderContainer = document.querySelector(".slider-container");
+        if (sliderContainer) {
+            sliderContainer.style.display = "none";
+            console.log("Slider ocultado");
+        }
 
-    data.forEach(group => {
-      group.contents.forEach(content => {
-        const contentDiv = document.createElement("div");
-        contentDiv.classList.add("content");
+        console.log("Haciendo petición a la API de content...");
+        const response = await fetch('https://wayfindingcms.oohrd.com/struct/api/content', {
+            method: 'GET',
+            headers: {
+                "Authorization": "Basic " + btoa("andres.carrillo@oohrd.com:andr3sCa11ill0")
+            }
+        });
 
-        contentDiv.style.backgroundImage = `url('https://wayfindingcms.oohrd.com/${content.img}')`;
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-        container.appendChild(contentDiv);
-      });
-    });
+        const data = await response.json();
+        console.log("Datos recibidos:", data);
 
-  } catch (error) {
-    console.error("Error al cargar las categorías:", error);
-  }
+        container.innerHTML = '';
+
+        let filteredData = data;
+        if (typeId && typeId !== 'all') {
+            const typeIdParsed = parseInt(typeId);
+            filteredData = data.filter(group => 
+                group.content_type_id === typeIdParsed
+            );
+            console.log(`Contenido filtrado por typeId "${typeId}":`, filteredData);
+        }
+
+        if (filteredData.length === 0) {
+            container.innerHTML = '<div class="no-data">No hay contenido disponible para esta sección</div>';
+            return;
+        }
+
+        let totalContent = 0;
+        filteredData.forEach(group => {
+            if (group.contents && Array.isArray(group.contents)) {
+                group.contents.forEach((content, index) => {
+                    console.log(`Creando contenido ${totalContent + 1}:`, content);
+                    
+                    const contentDiv = document.createElement("div");
+                    contentDiv.classList.add("content");
+
+                    if (content.img) {
+                        contentDiv.style.backgroundImage = `url('https://wayfindingcms.oohrd.com/${content.img}')`;
+                    }
+
+                    container.appendChild(contentDiv);
+                    totalContent++;
+                });
+            }
+        });
+
+        console.log(`${totalContent} elementos de contenido renderizados exitosamente`);
+
+    } catch (error) {
+        console.error("Error al cargar el contenido:", error);
+        const container = document.querySelector(".content-container");
+        if (container) {
+            container.innerHTML = '<div class="error">Error al cargar el contenido</div>';
+        }
+    }
 }
 
-document.addEventListener("DOMContentLoaded", loadContent);
+export function showSlider() {
+    const sliderContainer = document.querySelector(".slider-container");
+    if (sliderContainer) {
+        sliderContainer.style.display = "flex";
+    }
+}

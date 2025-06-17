@@ -32,7 +32,7 @@ async function loadContent() {
     });
 
   } catch (error) {
-    console.error("Error al cargar las categorías:", error);
+    console.error("Error al cargar los slider:", error);
   }
 }
 
