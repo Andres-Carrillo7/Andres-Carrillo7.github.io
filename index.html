@@ -199,6 +199,7 @@
     #main-content {
       position: relative;
       z-index: 3;
+      align-content: center;
     }
 
     .header {
@@ -223,8 +224,9 @@
       <label for="menu-toggle" class="menu-icon">
         <span class="hamburger"></span>
       </label>
-      <a href="index.html" class="logo">
-        LO<br>GO
+      <div class="logo">
+        <a href="index.html" class="logo-image"></a>
+      </div>
       </a>
     </div>
     <button class="map-button" onclick="showMap()">Mapa</button>
@@ -240,6 +242,14 @@
       </label>
     </div>
     <div class="menu-items">
+      <div class="menu-item">
+        <img src="/assets/icon-map.svg" alt="Mapa" class="icon" />
+        <a href="#" onclick="showMapFromMenu(); return false;">Mapa</a>
+      </div>
+      <div class="menu-item">
+        <img src="/assets/icon-event.svg" alt="Categorias" class="icon" />
+        <a href="index.html">Categorias</a>
+      </div>
     </div>
   </div>
 
@@ -260,9 +270,6 @@
     </div>
 
     <div id="results" class="results-container"></div>
-
-    <div class="slider-container">
-    </div>
 
     <div 
       id="main-content"
@@ -420,12 +427,9 @@
     import { loadCategories } from "/src/category.js";
     import { loadSubcategories } from "/src/subcategory.js";
     import { loadPois } from "/src/poi.js";
-    import { loadContent, showSlider } from "/src/content.js";
-    import { loadMenu } from "/src/menu.js";
 
     // Hacer las funciones disponibles globalmente
     window.loadCategories = loadCategories;
-    window.showSlider = showSlider;
 
     // ========== INICIALIZACIÓN PRINCIPAL ==========
     async function safeInitialize() {
@@ -448,7 +452,6 @@
         });
 
         await waitForElement('.menu-items');
-        await loadMenuWithRetry();
         await initializeMap();
         
         console.log('Initialization completed successfully');
@@ -538,41 +541,6 @@
       });
     }
 
-    async function loadContentWithRetry(contentType, maxRetries = 3) {
-      return await queueRequest(`content-${contentType}`, async () => {
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
-          try {
-            console.log(`Loading content for ${contentType} - Attempt ${attempt}/${maxRetries}`);
-            await loadContent(contentType);
-            console.log('Content loaded successfully on attempt', attempt);
-            return;
-          } catch (error) {
-            console.error(`Content load attempt ${attempt} failed:`, error);
-            if (attempt === maxRetries) {
-              showErrorMessage('Error cargando contenido. Por favor, intenta de nuevo.');
-              throw error;
-            }
-            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-          }
-        }
-      });
-    }
-
-    async function loadMenuWithRetry(retries = 3) {
-      for (let i = 0; i < retries; i++) {
-        try {
-          await loadMenu();
-          appState.menuLoaded = true;
-          console.log('Menu loaded successfully');
-          return;
-        } catch (error) {
-          console.warn(`Menu load attempt ${i + 1} failed:`, error);
-          if (i === retries - 1) throw error;
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-      }
-    }
-
     // ========== MANEJADOR UNIFICADO DE HTMX ==========
     async function handlePageLoad(url, target) {
       console.log('Processing page load:', url, 'Target:', target?.id);
@@ -589,7 +557,6 @@
           
           console.log('Loading categories page');
           appState.currentPage = 'categories';
-          showSlider();
           
           // Implementar retry con backoff para requests de categorías
           await loadCategoriesWithRetry();
@@ -636,25 +603,6 @@
               console.error("No subcategoryID found in URL");
             }
           }
-        }
-        
-        // Contenido
-        else if (url.includes("content.html")) {
-          if (!shouldProcessPage(url, 'content')) return;
-          
-          console.log('Loading content page');
-          appState.currentPage = 'content';
-          closeMenu();
-          
-          const urlParts = url.split('?');
-          let contentType = 'all';
-          if (urlParts.length > 1) {
-            const urlParams = new URLSearchParams(urlParts[1]);
-            contentType = urlParams.get('typeId') || 'all';
-          }
-          
-          await loadContentWithRetry(contentType);
-          console.log('Content loaded for type:', contentType);
         }
         
         // Mapa
@@ -727,8 +675,7 @@
         if (mainContent && !appState.currentPage) {
           console.log('DOM ready, checking for initial category load...');
           try {
-            if (typeof window.showSlider === 'function' && typeof window.loadCategories === 'function') {
-              showSlider();
+            if (typeof window.loadCategories === 'function') {
               await loadCategories();
               appState.currentPage = 'categories';
               console.log('Initial categories loaded on DOM ready');
