@@ -38,8 +38,9 @@ export async function loadMenu() {
             const iconSrc = iconMap[contentType.menu_name.toLowerCase()] || '/assets/icon-default.svg';
 
             menuItem.innerHTML = `
-                <img src="${iconSrc}" alt="${contentType.menu_name}" class="icon" />
+                <img src="${iconSrc}" alt="${contentType.menu_name}" class="icon"/>
                 <a href="/components/content.html?typeId=${contentType.id}"
+                   onclick="hideMap()"
                    hx-get="/components/content.html?typeId=${contentType.id}"
                    hx-target="#main-content"
                    hx-swap="innerHTML">${contentType.menu_name}</a>
