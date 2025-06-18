@@ -40,7 +40,7 @@ export async function loadContent(typeId) {
         if (typeId && typeId !== 'all') {
             const typeIdParsed = parseInt(typeId);
             filteredData = data.filter(group => 
-                group.content_type_id === typeIdParsed
+                group.id === typeIdParsed
             );
             console.log(`Contenido filtrado por typeId "${typeId}":`, filteredData);
         }
@@ -80,9 +80,39 @@ export async function loadContent(typeId) {
     }
 }
 
-export function showSlider() {
+export async function showSlider() {
     const sliderContainer = document.querySelector(".slider-container");
     if (sliderContainer) {
         sliderContainer.style.display = "flex";
     }
+
+    const response = await fetch('https://wayfindingcms.oohrd.com/struct/api/content', {
+      method: 'GET',
+      headers: {
+        "Authorization": "Basic " + btoa("andres.carrillo@oohrd.com:andr3sCa11ill0")
+      }
+    });
+
+    const data = await response.json();
+
+    sliderContainer.innerHTML = '';
+
+     data.forEach(group => {
+      group.contents.forEach(content => {
+        const slideDiv = document.createElement("div");
+        slideDiv.classList.add("slide");
+
+        const imageDiv = document.createElement("div");
+        imageDiv.classList.add("slide-image");
+        imageDiv.style.backgroundImage = `url('https://wayfindingcms.oohrd.com${content.img}')`;
+
+        const colorDiv = document.createElement("div");
+        colorDiv.classList.add("slide-color");
+
+        slideDiv.appendChild(imageDiv);
+        slideDiv.appendChild(colorDiv);
+
+        sliderContainer.appendChild(slideDiv);
+      });
+    });
 }

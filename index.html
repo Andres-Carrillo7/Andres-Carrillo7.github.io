@@ -45,7 +45,6 @@
       z-index: 10;
     }
 
-    /* CORRECCIÓN: El menú debe estar siempre por encima usando especificidad correcta */
     .side-menu {
       position: fixed;
       top: 0;
@@ -55,13 +54,12 @@
       background-color: white;
       box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
       transition: left 0.3s ease;
-      z-index: 1000; /* Valor alto pero sin !important */
+      z-index: 1000;
       padding: 20px 10px;
     }
 
-    /* Asegurar que en modo mapa el menú siga por encima */
     body.map-mode .side-menu {
-      z-index: 1001; /* Un nivel más alto que el mapa */
+      z-index: 1001;
     }
 
     #menu-toggle:checked ~ #content-layer .side-menu,
@@ -69,7 +67,6 @@
       left: 0;
     }
 
-    /* Overlay para cerrar el menú cuando se hace clic fuera */
     .menu-overlay {
       position: fixed;
       top: 0;
@@ -88,7 +85,8 @@
     .map-controls {
       position: absolute;
       bottom: 20px;
-      right: 20px;
+      right: 16px;
+      height: calc(100vh - 140px);
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -96,13 +94,34 @@
     }
 
     .map-controls button {
-      padding: 10px 15px;
-      background: white;
+      width: 22px;
+      height: 22px;
+      background-color: #8BB800;
+      color: #ffffff;
       border: none;
       border-radius: 5px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.2);
       cursor: pointer;
       font-weight: bold;
+      font-size: 18px;
+    }
+
+    #zoom-reset {
+      background-image: url(/assets/reset.svg);
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+
+    #zoom-out {
+      background-image: url(/assets/zoom_out.svg);
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+
+    #zoom-in {
+      background-image: url(/assets/zoom_in.svg);
+      background-size: contain;
+      background-repeat: no-repeat;
     }
 
     .map-controls button:hover {
@@ -138,7 +157,6 @@
       z-index: 3;
     }
 
-    /* Corrección adicional para asegurar el funcionamiento del menú */
     .header {
       position: relative;
       z-index: 100;
@@ -160,10 +178,8 @@
     <button class="map-button" onclick="showMap()">Mapa</button>
   </header>
 
-  <!-- Overlay para cerrar el menú -->
   <div class="menu-overlay" onclick="closeMenu()"></div>
 
-  <!-- Menú lateral - MOVIDO FUERA de las capas -->
   <div class="side-menu">
     <div class="close-container">
       <label for="menu-toggle" class="close-icon">
@@ -175,18 +191,16 @@
     </div>
   </div>
 
-  <!-- Capa del mapa (siempre activa pero oculta) -->
   <div id="map-layer">
     <div id="mi-contenedor"></div>
     <div class="map-controls">
-      <button id="zoom-in">Zoom +</button>
-      <button id="zoom-out">Zoom -</button>
-      <button id="zoom-reset">Reset</button>
+      <button id="zoom-reset"></button>
+      <button id="zoom-in"></button>
+      <button id="zoom-out"></button>
     </div>
     <button class="close-map-btn" onclick="hideMap()">×</button>
   </div>
 
-  <!-- Capa de contenido -->
   <div id="content-layer">
     <div class="search-container">
       <img class="search-icon" />
@@ -206,23 +220,50 @@
     ></div>
   </div>
 
-  <script src="/src/search.js"></script>
-  <script src="/src/slider.js"></script>
-
   <script>
-    // Estado global para controlar la inicialización
+    // ========== ESTADO GLOBAL ==========
     let appState = {
       domReady: false,
       mapInitialized: false,
       menuLoaded: false,
       retryCount: 0,
-      maxRetries: 3
+      maxRetries: 3,
+      // Sistema de estado más robusto
+      currentPage: null,
+      isInitializing: false,
+      loadingQueue: new Set(),
+      // Identificador único para cada sesión
+      sessionId: Date.now() + Math.random()
     };
 
+    // ========== FUNCIONES DE UTILIDAD ==========
+    function resetAppState() {
+      console.log('Resetting app state for session:', appState.sessionId);
+      appState.currentPage = null;
+      appState.isInitializing = false;
+      appState.loadingQueue.clear();
+    }
+
+    function shouldProcessPage(url, pageType) {
+      const key = `${pageType}-${url}`;
+      if (appState.loadingQueue.has(key)) {
+        console.log('Skipping duplicate processing for:', key);
+        return false;
+      }
+      appState.loadingQueue.add(key);
+      
+      // Limpiar entradas antiguas después de un tiempo
+      setTimeout(() => {
+        appState.loadingQueue.delete(key);
+      }, 5000);
+      
+      return true;
+    }
+
+    // ========== FUNCIONES EXISTENTES ==========
     function showMap() {
       document.body.classList.add('map-mode');
       
-      // Cerrar el menú si está abierto
       const menuToggle = document.getElementById('menu-toggle');
       if (menuToggle.checked) {
         menuToggle.checked = false;
@@ -241,12 +282,10 @@
     }
 
     window.showMapFromMenu = function() {
-      // Cerrar el menú primero
       closeMenu();
-      // Luego mostrar el mapa
       setTimeout(() => {
         showMap();
-      }, 300); // Esperar a que termine la animación del menú
+      }, 300);
       return false;
     };
 
@@ -288,7 +327,6 @@
       }
     }
 
-    // Función para asegurar que el DOM esté listo
     function ensureDOMReady(callback) {
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', callback);
@@ -297,8 +335,7 @@
       }
     }
 
-    // Función para esperar a que un elemento exista
-    function waitForElement(selector, timeout = 5000) {
+    function waitForElement(selector, timeout = 4000) {
       return new Promise((resolve, reject) => {
         const element = document.querySelector(selector);
         if (element) {
@@ -334,11 +371,21 @@
     import { loadContent, showSlider } from "/src/content.js";
     import { loadMenu } from "/src/menu.js";
 
-    // Función de inicialización segura
+    // Hacer las funciones disponibles globalmente
+    window.loadCategories = loadCategories;
+    window.showSlider = showSlider;
+
+    // ========== INICIALIZACIÓN PRINCIPAL ==========
     async function safeInitialize() {
+      if (appState.isInitializing) {
+        console.log('Initialization already in progress, skipping...');
+        return;
+      }
+      
+      appState.isInitializing = true;
+      console.log('Starting safe initialization for session:', appState.sessionId);
+      
       try {
-        console.log('Starting safe initialization...');
-        
         // Esperar a que el DOM esté completamente listo
         await new Promise(resolve => {
           if (document.readyState === 'complete') {
@@ -348,25 +395,117 @@
           }
         });
 
-        // Esperar a que el contenedor del menú exista
         await waitForElement('.menu-items');
-        
-        // Cargar el menú con reintentos
         await loadMenuWithRetry();
-        
-        // Inicializar el mapa
         await initializeMap();
         
         console.log('Initialization completed successfully');
         
       } catch (error) {
         console.error('Error during initialization:', error);
-        // Reintentar después de un delay
-        setTimeout(safeInitialize, 2000);
+        setTimeout(() => {
+          appState.isInitializing = false;
+          safeInitialize();
+        }, 2000);
+      } finally {
+        appState.isInitializing = false;
       }
     }
 
-    // Función para cargar el menú con reintentos
+    // ========== FUNCIONES DE CARGA CON RETRY ==========
+    async function loadCategoriesWithRetry(maxRetries = 3) {
+      return await queueRequest('categories', async () => {
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+          try {
+            console.log(`Loading categories - Attempt ${attempt}/${maxRetries}`);
+            
+            // Verificar que las funciones estén disponibles
+            if (typeof window.loadCategories !== 'function') {
+              throw new Error('loadCategories function not available');
+            }
+            
+            await window.loadCategories();
+            console.log('Categories loaded successfully on attempt', attempt);
+            return; // Éxito, salir del loop
+            
+          } catch (error) {
+            console.error(`Category load attempt ${attempt} failed:`, error);
+            
+            if (attempt === maxRetries) {
+              console.error('All category load attempts failed');
+              showErrorMessage('Error cargando categorías. Por favor, recarga la página.');
+              throw error;
+            }
+            
+            // Esperar más tiempo entre intentos (backoff exponencial)
+            const delay = Math.min(1000 * Math.pow(2, attempt - 1), 4000);
+            console.log(`Waiting ${delay}ms before retry...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
+        }
+      });
+    }
+
+    async function loadSubcategoriesWithRetry(categoryID, maxRetries = 3) {
+      return await queueRequest(`subcategories-${categoryID}`, async () => {
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+          try {
+            console.log(`Loading subcategories for ${categoryID} - Attempt ${attempt}/${maxRetries}`);
+            await loadSubcategories(categoryID);
+            console.log('Subcategories loaded successfully on attempt', attempt);
+            return;
+          } catch (error) {
+            console.error(`Subcategory load attempt ${attempt} failed:`, error);
+            if (attempt === maxRetries) {
+              showErrorMessage('Error cargando subcategorías. Por favor, intenta de nuevo.');
+              throw error;
+            }
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+          }
+        }
+      });
+    }
+
+    async function loadPoisWithRetry(subcategoryID, maxRetries = 3) {
+      return await queueRequest(`pois-${subcategoryID}`, async () => {
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+          try {
+            console.log(`Loading POIs for ${subcategoryID} - Attempt ${attempt}/${maxRetries}`);
+            await loadPois(subcategoryID);
+            console.log('POIs loaded successfully on attempt', attempt);
+            return;
+          } catch (error) {
+            console.error(`POI load attempt ${attempt} failed:`, error);
+            if (attempt === maxRetries) {
+              showErrorMessage('Error cargando ubicaciones. Por favor, intenta de nuevo.');
+              throw error;
+            }
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+          }
+        }
+      });
+    }
+
+    async function loadContentWithRetry(contentType, maxRetries = 3) {
+      return await queueRequest(`content-${contentType}`, async () => {
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+          try {
+            console.log(`Loading content for ${contentType} - Attempt ${attempt}/${maxRetries}`);
+            await loadContent(contentType);
+            console.log('Content loaded successfully on attempt', attempt);
+            return;
+          } catch (error) {
+            console.error(`Content load attempt ${attempt} failed:`, error);
+            if (attempt === maxRetries) {
+              showErrorMessage('Error cargando contenido. Por favor, intenta de nuevo.');
+              throw error;
+            }
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+          }
+        }
+      });
+    }
+
     async function loadMenuWithRetry(retries = 3) {
       for (let i = 0; i < retries; i++) {
         try {
@@ -382,99 +521,173 @@
       }
     }
 
-    // Inicializar la aplicación
-    safeInitialize();
+    // ========== MANEJADOR UNIFICADO DE HTMX ==========
+    async function handlePageLoad(url, target) {
+      console.log('Processing page load:', url, 'Target:', target?.id);
+      
+      if (!url || target?.id !== "main-content") return;
+      
+      // Esperar más tiempo para asegurar estabilidad del DOM y servidor
+      await new Promise(resolve => setTimeout(resolve, 300));
 
-    // Mejorar el manejo de eventos HTMX
-    document.body.addEventListener("htmx:afterSwap", async (evt) => {
       try {
-        if (evt.detail.target.id === "main-content") {
-          const url = evt.detail.xhr?.responseURL || "";
-          console.log('HTMX swap completed for:', url);
-
-          // Esperar un poco para que el DOM se actualice
-          await new Promise(resolve => setTimeout(resolve, 100));
-
-          if (url.includes("category.html") && !url.includes("subcategory.html")) {
-            try {
-              showSlider();
-              await loadCategories();
-            } catch (error) {
-              console.error('Error loading categories:', error);
-            }
-          } else if (url.includes("subcategory.html")) {
-            try {
-              const urlParts = url.split('?');
-              console.log("URL parts:", urlParts);
-              
-              if (urlParts.length > 1) {
-                const urlParams = new URLSearchParams(urlParts[1]);
-                const categoryID = urlParams.get('categoryID');
-                
-                if (categoryID) {
-                  await new Promise(resolve => setTimeout(resolve, 100));
-                  await loadSubcategories(categoryID);
-                } else {
-                  console.error("No se encontró categoryID en la URL");
-                }
-              }
-            } catch (error) {
-              console.error("Error procesando subcategory:", error);
-            }
-          } else if (url.includes("poi.html")) {
-            console.log(">>> Detectado poi.html");
+        // Categorías (página inicial o navegación)
+        if (url.includes("category.html") && !url.includes("subcategory.html")) {
+          if (!shouldProcessPage(url, 'category')) return;
+          
+          console.log('Loading categories page');
+          appState.currentPage = 'categories';
+          showSlider();
+          
+          // Implementar retry con backoff para requests de categorías
+          await loadCategoriesWithRetry();
+          console.log('Categories loaded successfully');
+        }
+        
+        // Subcategorías
+        else if (url.includes("subcategory.html")) {
+          if (!shouldProcessPage(url, 'subcategory')) return;
+          
+          console.log('Loading subcategories page');
+          appState.currentPage = 'subcategories';
+          
+          const urlParts = url.split('?');
+          if (urlParts.length > 1) {
+            const urlParams = new URLSearchParams(urlParts[1]);
+            const categoryID = urlParams.get('categoryID');
             
-            try {
-              const urlParts = url.split('?');
-              
-              if (urlParts.length > 1) {
-                const urlParams = new URLSearchParams(urlParts[1]);
-                const subcategoryID = urlParams.get('subcategoryID');
-                
-                console.log("SubcategoryID extraído:", subcategoryID);
-
-                if (subcategoryID) {
-                  await new Promise(resolve => setTimeout(resolve, 100));
-                  await loadPois(subcategoryID);
-                } else {
-                  console.error("No se encontró subcategoryID en la URL");
-                }
-              }
-            } catch (error) {
-              console.error("Error procesando poi:", error);
+            if (categoryID) {
+              await loadSubcategoriesWithRetry(categoryID);
+              console.log('Subcategories loaded for category:', categoryID);
+            } else {
+              console.error("No categoryID found in URL");
             }
-          } else if (url.includes("content.html")) {
-            try {
-              const urlParts = url.split('?');
-              
-              let contentType = 'all';
-              if (urlParts.length > 1) {
-                const urlParams = new URLSearchParams(urlParts[1]);
-                contentType = urlParams.get('typeId') || 'all';
-              }
-              
-              await new Promise(resolve => setTimeout(resolve, 100));
-              await loadContent(contentType);
-            } catch (error) {
-              console.error("Error procesando content:", error);
-            }
-          } else if (url.includes("map.html")) {
-            showMap();
           }
         }
+        
+        // POIs
+        else if (url.includes("poi.html")) {
+          if (!shouldProcessPage(url, 'poi')) return;
+          
+          console.log('Loading POIs page');
+          appState.currentPage = 'pois';
+          
+          const urlParts = url.split('?');
+          if (urlParts.length > 1) {
+            const urlParams = new URLSearchParams(urlParts[1]);
+            const subcategoryID = urlParams.get('subcategoryID');
+            
+            if (subcategoryID) {
+              await loadPoisWithRetry(subcategoryID);
+              console.log('POIs loaded for subcategory:', subcategoryID);
+            } else {
+              console.error("No subcategoryID found in URL");
+            }
+          }
+        }
+        
+        // Contenido
+        else if (url.includes("content.html")) {
+          if (!shouldProcessPage(url, 'content')) return;
+          
+          console.log('Loading content page');
+          appState.currentPage = 'content';
+          closeMenu();
+          
+          const urlParts = url.split('?');
+          let contentType = 'all';
+          if (urlParts.length > 1) {
+            const urlParams = new URLSearchParams(urlParts[1]);
+            contentType = urlParams.get('typeId') || 'all';
+          }
+          
+          await loadContentWithRetry(contentType);
+          console.log('Content loaded for type:', contentType);
+        }
+        
+        // Mapa
+        else if (url.includes("map.html")) {
+          console.log('Showing map');
+          appState.currentPage = 'map';
+          showMap();
+        }
+        
       } catch (error) {
-        console.error('Error in HTMX afterSwap handler:', error);
+        console.error('Error processing page load:', error);
+      }
+    }
+
+    // ========== PREVENCIÓN DE REQUESTS CONCURRENTES ==========
+    
+    let requestQueue = new Map();
+    
+    async function queueRequest(key, requestFn) {
+      // Si ya hay un request en progreso para esta key, esperar a que termine
+      if (requestQueue.has(key)) {
+        console.log(`Request for ${key} already in progress, waiting...`);
+        return await requestQueue.get(key);
+      }
+      
+      // Crear y ejecutar el request
+      const requestPromise = requestFn();
+      requestQueue.set(key, requestPromise);
+      
+      try {
+        const result = await requestPromise;
+        return result;
+      } finally {
+        // Limpiar el request de la cola
+        requestQueue.delete(key);
+      }
+    }
+
+    // ========== EVENT LISTENERS ==========
+    
+    // Usar solo afterSwap para evitar duplicaciones
+    document.body.addEventListener("htmx:afterSwap", async (evt) => {
+      const url = evt.detail.xhr?.responseURL || "";
+      await handlePageLoad(url, evt.detail.target);
+    });
+
+    // Detectar recargas de página
+    window.addEventListener('beforeunload', () => {
+      console.log('Page unloading, cleaning up...');
+      resetAppState();
+    });
+
+    // Detectar cuando la página viene del caché
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted) {
+        console.log('Page loaded from cache, resetting state...');
+        resetAppState();
       }
     });
 
-    // Manejar errores de HTMX
-    document.body.addEventListener("htmx:responseError", (evt) => {
-      console.error('HTMX Response Error:', evt.detail);
-    });
+    // ========== INICIALIZACIÓN ==========
+    
+    // Inicializar la aplicación
+    safeInitialize();
 
-    document.body.addEventListener("htmx:sendError", (evt) => {
-      console.error('HTMX Send Error:', evt.detail);
+    // Manejar carga inicial de categorías si es necesario
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(async () => {
+        const mainContent = document.getElementById('main-content');
+        if (mainContent && !appState.currentPage) {
+          console.log('DOM ready, checking for initial category load...');
+          try {
+            if (typeof window.showSlider === 'function' && typeof window.loadCategories === 'function') {
+              showSlider();
+              await loadCategories();
+              appState.currentPage = 'categories';
+              console.log('Initial categories loaded on DOM ready');
+            }
+          } catch (error) {
+            console.error('Error loading initial categories on DOM ready:', error);
+          }
+        }
+      }, 500);
     });
   </script>
+  <script src="/src/search.js"></script>
 </body>
 </html>
