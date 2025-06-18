@@ -229,7 +229,6 @@ body {
 .search-icon {
   width: 16px;
   height: 16px;
-  background-image: url('../assets/icon-lens.svg');
   background-size: cover;
 }
 
