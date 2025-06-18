@@ -306,7 +306,7 @@ body {
 /* CATEGORIA */
 .category-container {
   width: 100%;
-  max-width: 340px;
+  max-width: 420px;
   max-height: calc(105vh - 300px);
   margin: 40px auto 0 auto;
   display: grid;
