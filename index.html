@@ -687,6 +687,36 @@
       }, 500);
     });
   </script>
+
+<script>
+  (function () {
+    const colorKey = 'sessionTextColor';
+
+    // Si ya existe el color en sessionStorage, úsalo; si no, genera uno y guárdalo
+    let sessionColor = sessionStorage.getItem(colorKey);
+
+    if (!sessionColor) {
+      const colors = ['#FF5733', '#33B5FF', '#7DFF33', '#FF33A1', '#FF8C00', '#9933FF'];
+      sessionColor = colors[Math.floor(Math.random() * colors.length)];
+      sessionStorage.setItem(colorKey, sessionColor);
+    }
+
+    // Aplicarlo al header, o puedes cambiar la clase objetivo si deseas otra
+    const applyColor = () => {
+      const header = document.querySelector('.header');
+      if (header) {
+        header.style.color = sessionColor;
+      }
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', applyColor);
+    } else {
+      applyColor();
+    }
+  })();
+</script>
+
   <script src="/src/search.js"></script>
 </body>
 </html>
