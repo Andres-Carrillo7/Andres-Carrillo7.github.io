@@ -49,7 +49,8 @@ function filterData(query) {
           resultItem.setAttribute("data-poi-id", item.poiID);
 
           resultItem.addEventListener("click", () => {
-            window.location.href = `components/map.html?poiID=${item.poiID}`;
+            //window.location.href = `components/map.html?poiID=${item.poiID}`;
+            showMap();
           });
 
           resultsContainer.appendChild(resultItem);
