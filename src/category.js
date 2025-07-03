@@ -8,7 +8,7 @@ export async function loadCategories() {
     const response = await fetch('https://wayfindingcms.oohrd.com/struct/api/category', {
       method: 'GET',
       headers: {
-        "Authorization": "Basic " + btoa("andres.carrillo@oohrd.com:andr3sCa11ill0")
+        "Authorization": "Basic " + btoa("user2@user.com:usuario12345")
       }
     });
 
